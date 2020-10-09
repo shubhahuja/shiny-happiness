@@ -10,7 +10,7 @@ from keras.preprocessing import image
 
 model = tf.keras.models.load_model('sps.h5')
 
-model_dict={0:"paper",1:"scissors",2:"stone"}
+model_dict={1:"paper",2:"scissors",3:"stone",0:"none"}
 
 def random_gesture():
     l=["stone","paper","scissors"]
@@ -66,7 +66,8 @@ while(True):
     if state=="play":
         img = frame[100:550, 600:1050]
         
-        img=cv2.resize(img,(150,150))        
+        img=cv2.resize(img,(150,150)) 
+        img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)       
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
         images = np.vstack([x])
@@ -113,6 +114,7 @@ while(True):
         state = "play"
     if k== ord('q') :
         break
-
+    if k== ord('q') :
+        break
 cap.release()
 cv2.destroyAllWindows()

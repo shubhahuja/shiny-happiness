@@ -14,9 +14,9 @@ from tensorflow.keras.optimizers import Adam
 
 
 
-stone_dir = os.path.join('image_data/stone')
-paper_dir = os.path.join('image_data/paper')
-scissors_dir = os.path.join('image_data/scissors')
+stone_dir = os.path.join('image_data/train/stone')
+paper_dir = os.path.join('image_data/train/paper')
+scissors_dir = os.path.join('image_data/train/scissors')
 
 print('total training stone images:', len(os.listdir(stone_dir)))
 print('total training paper images:', len(os.listdir(paper_dir)))
@@ -27,14 +27,14 @@ print('total training scissors images:', len(os.listdir(scissors_dir)))
 
 
 
-TRAINING_DIR = "image_data"
+TRAINING_DIR = "image_data/train"
 training_datagen = ImageDataGenerator(
       rescale = 1./255,
-	    rotation_range=40,
+	    rotation_range=20,
       width_shift_range=0.2,
       height_shift_range=0.2,
       shear_range=0.2,
-      zoom_range=0.2,
+      zoom_range=0.3,
       horizontal_flip=True,
       fill_mode='nearest')
 
@@ -42,38 +42,41 @@ training_datagen = ImageDataGenerator(
 
 train_generator = training_datagen.flow_from_directory(
 	TRAINING_DIR,
-	target_size=(300,300),
+	target_size=(150,150),
 	class_mode='categorical',
   batch_size=20
 )
 
 
-VALIDATION_DIR = "test"
+VALIDATION_DIR = "image_data/test"
 validation_datagen = ImageDataGenerator(rescale = 1./255)
 
 validation_generator = validation_datagen.flow_from_directory(
 	VALIDATION_DIR,
-	target_size=(300,300),
+	target_size=(150,150),
 	class_mode='categorical',
-  batch_size=126
+  batch_size=20
 )
 
 class_names = train_generator.class_indices
 print(class_names)
-
+class_names = validation_generator.class_indices
+print(class_names)
 
 model = tf.keras.models.Sequential([
     # Note the input shape is the desired size of the image 150x150 with 3 bytes color
     # This is the first convolution
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(300, 300, 3)),
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu', input_shape=(150,150,3)),
     tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Dropout(0.5),
+    
     # The second convolution
-    #tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
-    #tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Dropout(0.5),
     # The third convolution
-    #tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
-    #tf.keras.layers.MaxPooling2D(2,2),
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+    
     # The fourth convolution
     tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2,2),
@@ -82,7 +85,7 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(0.5),
     # 512 neuron hidden layer
     tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(3, activation='softmax')
+    tf.keras.layers.Dense(4, activation='softmax')
 ])
 
 
@@ -90,7 +93,7 @@ model.summary()
 
 model.compile(loss = 'categorical_crossentropy', optimizer=Adam(learning_rate=0.0001), metrics=['accuracy'])
 print("yay")
-history = model.fit(train_generator, epochs=20, validation_data = validation_generator, verbose = 1, validation_steps=3)
+history = model.fit(train_generator, epochs=10, validation_data = validation_generator, verbose = 1, validation_steps=3)
 
 model.save("sps.h5")
 """
